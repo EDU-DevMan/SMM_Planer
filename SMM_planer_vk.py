@@ -1,6 +1,8 @@
 import os
 import requests
+# import gspread
 from dotenv import load_dotenv
+from SMM_google_parser import get_data_from_sheet
 
 
 def main():
@@ -19,6 +21,14 @@ def main():
     response = requests.post(vk_url, data=payload)
     response.raise_for_status()
     post = response.json()
+    if 'response' in post:
+        print('Пост опубликован')
+        # post['response']['post_id'] - id поста
+    else:    
+        print(f'Ошибка: {post['error']['error_text']}')
+
+    result = get_data_from_sheet()
+    # print(result)
 
 
 if __name__ == '__main__':
