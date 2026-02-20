@@ -10,11 +10,11 @@
 
 - `TABLE_NAME` = SMM_Planer_Vitaliy
 - `SHEET_NAME` = Plan
-- `TG_TOKEN` = твой_токен_от_ботфазера
-- `TG_CHANNEL_ID` = @твой_канал
-- `VK_TOKEN` = токен_сообщества
-- `VK_GROUP_ID` = номер_группы
-- `OK_ACCESS_TOKEN` = твой_токен
-- `OK_PUBLIC_KEY` = публичный_ключ
-- `OK_SECRET_KEY` = секретный_ключ
-- `OK_GROUP_ID` = номер_группы
+- `TG_TOKEN` = твой_токен_от_ботфазера telegram
+- `TG_CHANNEL_ID` = @твой_канал telegram
+- `VK_TOKEN` = токен_сообщества vk
+- `VK_GROUP_ID` = номер_группы vk
+- `OK_ACCESS_TOKEN` = твой_токен от одноклассников
+- `OK_PUBLIC_KEY` = публичный_ключ от одноклассников 
+- `OK_SECRET_KEY` = секретный_ключ от одноклассников
+- `OK_GROUP_ID` = номер_группы одноклассников
