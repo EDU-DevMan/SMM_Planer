@@ -15,7 +15,10 @@ SPREADSHEET_NAME = "SMM_Planer_Vitaliy"
 WORKSHEET_NAME = "Plan"
 
 
-def get_account():
+def get_client_authorization():
+    """Функция возвращает авторизованного пользователя"""
+    # TODO: Добавить try except
+
     creds = ServiceAccountCredentials.from_json_keyfile_name(
         GOOGLE_CREDENTIALS,
         SCOPE_CREDENTIALS
@@ -27,8 +30,8 @@ def get_account():
 def get_data_from_sheet():
     """Функция возвращает данные из таблицы"""
     try:
-        spreadsheet = get_account().open(SPREADSHEET_NAME)
-        sheet = get_account().open_by_key(
+        spreadsheet = get_client_authorization().open(SPREADSHEET_NAME)
+        sheet = get_client_authorization().open_by_key(
             spreadsheet.id).worksheet(WORKSHEET_NAME)
         data = sheet.get_all_records()
         # all_values = sheet.get_all_values()
