@@ -10,3 +10,5 @@ venv.bak/
 
 # Google credential
 creds.json
+
+__pycache__
