@@ -1,5 +1,7 @@
 import re
+
 from SMM_google_parser import get_data_from_sheet
+
 
 """
 Все комментарии и предложения из этого скрипта должны быть
@@ -31,11 +33,29 @@ def processes_text_additionally(text):
     return text.strip()
 
 
-if __name__ == "__main__":
+def main():
+    """
+        Функция возвращает словарь:
+        Пример:
+        {'Ids': 1, 'Corrected_text': 'C 23 февраля. «УРА!» — «УРА!» — «УРА!»'},
+        {'Ids': 2, 'Corrected_text': 'C 8 марта. «УРА» — «УРА» — «УРА»!!!!'}
+        где Ids - ID поста, Corrected_text - вычищенный текст
+    """
     # TODO: продумать каким образом нам будет удобно получать результат
     # В данном случае идет привязка к 'Ids' из таблицы
 
+    results = []
+
     for text_raw in get_data_from_sheet():
-        print(processes_text_additionally(
-            get_raw_text(text_raw)),
-            text_raw.get('Ids'))
+        results.append({
+            'Ids': text_raw.get('Ids'),
+            'Corrected_text': processes_text_additionally(
+                get_raw_text(text_raw))
+        })
+
+    return results
+
+
+if __name__ == "__main__":
+
+    print(main())
