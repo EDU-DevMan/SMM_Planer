@@ -1,5 +1,5 @@
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2 import service_account
 
 
 GOOGLE_CREDENTIALS = 'creds.json'
@@ -15,35 +15,42 @@ SPREADSHEET_NAME = "SMM_Planer_Vitaliy"
 WORKSHEET_NAME = "Plan"
 
 
-def get_account():
-    creds = ServiceAccountCredentials.from_json_keyfile_name(
-        GOOGLE_CREDENTIALS,
-        SCOPE_CREDENTIALS
-        )
+def get_client_authorization():
+    """Функция получает авторизованного пользователя"""
 
-    return gspread.authorize(creds)
+    try:
+        creds = service_account.Credentials.from_service_account_file(
+            GOOGLE_CREDENTIALS,
+            scopes=SCOPE_CREDENTIALS
+        )
+        return gspread.authorize(creds)
+
+    except FileNotFoundError:
+        print(f"Файл {GOOGLE_CREDENTIALS} не найден")
+    except Exception as e:
+        print(f"Ошибка авторизации: {type(e).__name__} - {e}")
+
+    return None
 
 
 def get_data_from_sheet():
     """Функция возвращает данные из таблицы"""
+
     try:
-        spreadsheet = get_account().open(SPREADSHEET_NAME)
-        sheet = get_account().open_by_key(
+        spreadsheet = get_client_authorization().open(SPREADSHEET_NAME)
+        sheet = get_client_authorization().open_by_key(
             spreadsheet.id).worksheet(WORKSHEET_NAME)
         data = sheet.get_all_records()
-        # all_values = sheet.get_all_values()
 
-        # TODO: подумать с выводом
         return data
 
     except gspread.exceptions.SpreadsheetNotFound:
-        print("Таблица с таким именем не найдена.")
+        return "Таблица с таким именем не найдена."
     except gspread.exceptions.WorksheetNotFound:
-        print("Лист с таким именем не найден.")
+        return "Лист с таким именем не найден."
+    except Exception:
+        return "Невозможно вернуть данные."
 
 
 if __name__ == "__main__":
-    result = get_data_from_sheet()
-
-    if result:
-        print(result)
+    print(get_data_from_sheet())
