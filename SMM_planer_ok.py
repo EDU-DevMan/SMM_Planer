@@ -42,6 +42,7 @@ def post_to_ok(text, photo_token=None):
                 type="GROUP_THEME",
                 attachment=attachment
             )
+            response.raise_for_status()
             return response
 
         except OkApiException as e:
@@ -53,7 +54,6 @@ def main():
     client = get_client_authorization()
     sheet = client.open(SPREADSHEET_NAME).worksheet(WORKSHEET_NAME)
     records = sheet.get_all_records()
-    print(f"Таблица подключена. Строк: {len(records)}")
     for i, row in enumerate(records, start=2):
         ok_flag = str(row.get('OK'))
         if ok_flag == "1":
@@ -66,9 +66,7 @@ def main():
                 if not photo_token:
                     print("Не удалось загрузить фото.")
                     sheet.update_cell(i, 9, "Ошибка фото")
-            print("Публикую в ОК...")
             res = post_to_ok(text_post, photo_token)
-            print(f"Успешно! Ответ: {res}")
             sheet.update_cell(i, 9, "Опубликовано")
             break
 
