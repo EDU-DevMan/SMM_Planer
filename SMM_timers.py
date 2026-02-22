@@ -2,10 +2,18 @@ from SMM_google_parser import get_data_from_sheet
 from datetime import datetime
 
 
-def get_publication_time_match():
+def get_publication_time_match(records=None):
+    """
+    Возвращает список словарей с флагом публикации.
+    Если records передан - использует его, иначе читает таблицу.
+    """
     results = []
+    
+    # Если records не передан - читаем таблицу
+    if records is None:
+        records = get_data_from_sheet()
 
-    for fields_date in get_data_from_sheet():
+    for fields_date in records:
         date = fields_date.get('Дата')
         time = fields_date.get('Время')
         post_id = fields_date.get('Ids')
@@ -22,11 +30,19 @@ def get_publication_time_match():
     return results
 
 
-def get_match_time_post_deleted():
+def get_match_time_post_deleted(records=None):
+    """
+    Возвращает список словарей с флагом удаления.
+    Если records передан - использует его, иначе читает таблицу.
+    """
     results = []
     now = datetime.now()
+    
+    # Если records не передан - читаем таблицу
+    if records is None:
+        records = get_data_from_sheet()
 
-    for fields_date in get_data_from_sheet():
+    for fields_date in records:
         delete_str = fields_date.get('Удалить через')
         post_id = fields_date.get('Ids')
 
