@@ -3,33 +3,16 @@ import schedule
 import time
 import os
 
-from SMM_typography import main
+from SMM_typography import processes_text_additionally
 from SMM_google_parser import get_data_from_sheet
+from SMM_planer_tg import run_once as run_tg_once
+from SMM_planer_ok import run_once as run_ok_once  # Теперь работает
 
-
-"""
-    > Все комментарии и предложения из этого скрипта должны быть
-     перенесены в README|CONTRIBUTING при создании основного релиза
-"""
-
-"""
-    Описание модуля schedule > https://pypi.org/project/schedule/
-    Модуль позволяет запускать задания по расписанию.
-    Для тестирования запуска по расписанию выполняются два задания:
-    def run_smm_typography() и def run_get_data_from_sheet()
-    Реализована запись логов работы generates_log() 
-    в директорию logs - создается автоматически.
-    """
-
-# TODO: в основной реализации вместо тестовых заданий должны быть добавлены
-# модули SMM_planer_ok.py | SMM_planer_tg.py | SMM_planer_vk.py
 
 LOGS_PATH = "logs"
 
 
 def generates_log():
-    "Функция генерирует логи работы функция автозапуска"
-
     os.makedirs(LOGS_PATH, exist_ok=True)
 
     logging.basicConfig(
@@ -44,36 +27,56 @@ def generates_log():
     return logging.getLogger(__name__)
 
 
-# TODO: Пример автозапуска SMM_typography.py модуля
 def run_smm_typography():
-    """Запускает модуль typography.py"""
-
     generates_log().info("Корректируем текст")
     try:
-        print(main())
+        data = get_data_from_sheet()
+        if data:
+            for row in data:
+                text = row.get('Текст поста', '')
+                if text:
+                    cleaned = processes_text_additionally(text)
+                    generates_log().info(f"Очищенный текст: {cleaned[:50]}...")
         generates_log().info("Корректировка успешна")
     except Exception as e:
         generates_log().error(f"Ошибка - {e}")
 
 
-# TODO: Пример автозапуска SMM_google_parser.py модуля
+def run_tg_cycle():
+    generates_log().info("Запуск проверки Telegram")
+    try:
+        run_tg_once()
+        generates_log().info("Проверка Telegram завершена")
+    except Exception as e:
+        generates_log().error(f"Ошибка Telegram - {e}")
+
+
+def run_ok_cycle():
+    generates_log().info("Запуск проверки OK")
+    try:
+        run_ok_once()
+        generates_log().info("Проверка OK завершена")
+    except Exception as e:
+        generates_log().error(f"Ошибка OK - {e}")
+
+
 def run_get_data_from_sheet():
-    """Запускает модуль SMM_google_parser.py"""
     generates_log().info("Читаем таблицу")
     try:
-        print(get_data_from_sheet())
+        data = get_data_from_sheet()
+        generates_log().info(f"Найдено записей: {len(data)}")
         generates_log().info("Таблица прочитана успешно")
     except Exception as e:
         generates_log().error(f"Ошибка - {e}")
 
 
 def runs_tasks_schedule():
-    """Запуск по расписанию"""
-
     generates_log().info("SMM Planer запущен...")
 
-    schedule.every(10).seconds.do(run_smm_typography)
-    schedule.every(20).seconds.do(run_get_data_from_sheet)
+    schedule.every(30).seconds.do(run_tg_cycle)
+    schedule.every(30).seconds.do(run_ok_cycle)
+    schedule.every(60).seconds.do(run_get_data_from_sheet)
+    schedule.every(5).minutes.do(run_smm_typography)
 
     while True:
         schedule.run_pending()
@@ -81,7 +84,6 @@ def runs_tasks_schedule():
 
 
 if __name__ == "__main__":
-
     try:
         runs_tasks_schedule()
     except KeyboardInterrupt:
