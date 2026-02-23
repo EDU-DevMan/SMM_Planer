@@ -1,56 +1,49 @@
 import gspread
 from google.oauth2 import service_account
 
-
 GOOGLE_CREDENTIALS = 'creds.json'
-
 SCOPE_CREDENTIALS = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive.file",
     "https://www.googleapis.com/auth/drive"
-    ]
+]
 
 SPREADSHEET_NAME = "SMM_Planer_Vitaliy"
 WORKSHEET_NAME = "Plan"
 
 
 def get_client_authorization():
-    """Функция получает авторизованного пользователя"""
-
     try:
         creds = service_account.Credentials.from_service_account_file(
-            GOOGLE_CREDENTIALS,
-            scopes=SCOPE_CREDENTIALS
+            GOOGLE_CREDENTIALS, scopes=SCOPE_CREDENTIALS
         )
         return gspread.authorize(creds)
-
-    except FileNotFoundError:
-        print(f"Файл {GOOGLE_CREDENTIALS} не найден")
     except Exception as e:
-        print(f"Ошибка авторизации: {type(e).__name__} - {e}")
+        print(f"Ошибка авторизации Google: {e}")
+        return None
 
-    return None
 
-
-def get_data_from_sheet():
-    """Функция возвращает данные из таблицы"""
-
+def get_sheet_and_data():
+    """Возвращает объект листа, заголовки и все записи"""
     try:
-        spreadsheet = get_client_authorization().open(SPREADSHEET_NAME)
-        sheet = get_client_authorization().open_by_key(
-            spreadsheet.id).worksheet(WORKSHEET_NAME)
-        data = sheet.get_all_records()
-
-        return data
-
-    except gspread.exceptions.SpreadsheetNotFound:
-        return "Таблица с таким именем не найдена."
-    except gspread.exceptions.WorksheetNotFound:
-        return "Лист с таким именем не найден."
-    except Exception:
-        return "Невозможно вернуть данные."
+        client = get_client_authorization()
+        if not client:
+            return None, None, None
+            
+        sheet = client.open(SPREADSHEET_NAME).worksheet(WORKSHEET_NAME)
+        headers = sheet.row_values(1)
+        records = sheet.get_all_records()
+        return sheet, headers, records
+    except Exception as e:
+        print(f"Ошибка получения данных: {e}")
+        return None, None, None
 
 
-if __name__ == "__main__":
-    print(get_data_from_sheet())
+def batch_update_cells(sheet, cell_objects):
+    """Массовое обновление ячеек одним запросом"""
+    if sheet and cell_objects:
+        try:
+            sheet.update_cells(cell_objects)
+        except Exception as e:
+            print(f"Ошибка при обновлении ячеек: {e}")
