@@ -5,3 +5,4 @@ vk-api==11.9.9
 gspread==6.2.1
 google-auth==2.48.0
 schedule==1.2.2
+google-api-python-client 2.190.0
