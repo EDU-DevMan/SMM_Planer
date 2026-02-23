@@ -9,7 +9,6 @@ load_dotenv()
 # Загружаем ключи
 OK_ACCESS_TOKEN = os.environ.get("OK_ACCESS_TOKEN")
 OK_PUBLIC_KEY = os.environ.get("OK_PUBLIC_KEY")
-# Берем SESSION_SECRET для подписи, так как именно он работал у коллеги
 OK_SECRET_FOR_SIG = os.environ.get("OK_SESSION_SECRET") 
 OK_GROUP_ID = os.environ.get("OK_GROUP_ID")
 
