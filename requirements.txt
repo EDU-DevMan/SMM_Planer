@@ -4,3 +4,5 @@ ok-api==1.0.1
 gspread==6.2.1
 google-auth==2.48.0
 google-api-python-client==2.190.0
+google-auth-httplib2==0.3.0
+google-auth-oauthlib==1.2.4

@@ -6,6 +6,8 @@ from gspread import Cell
 
 from SMM_typography import processes_text_additionally
 from SMM_google_parser import get_sheet_and_data, batch_update_cells
+from  SMM_doc_extract_google import get_text_from_google_doc
+
 import SMM_planer_tg as tg
 import SMM_planer_ok as ok
 import SMM_planer_vk as vk
@@ -58,9 +60,17 @@ def run_planner_cycle():
 
     for i, row in enumerate(records, start=2):
         post_id = row.get('Ids', f"Row {i}")
-        text = processes_text_additionally(row.get('Текст поста', ''))
         img = str(row.get('Ссылка на фото', '')).strip()
         pub_time = parse_datetime(row.get('Дата'), row.get('Время'))
+        text = row.get('Текст поста', '')
+        if text and 'docs.google.com/document' in text:
+            doc_text = get_text_from_google_doc(text)
+            if doc_text:
+                text = processes_text_additionally(doc_text)
+            else:
+                text = None
+        else:
+            text = processes_text_additionally(row.get('Текст поста', ''))
         
         # --- ПУБЛИКАЦИЯ ---
         if pub_time and now >= pub_time:
