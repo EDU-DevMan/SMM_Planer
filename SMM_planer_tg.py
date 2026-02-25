@@ -16,8 +16,14 @@ def send_to_telegram(text, photo_url=None):
     
     try:
         if photo_url and photo_url.strip().startswith('http'):
-            url = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
-            payload = {'chat_id': chat_id, 'photo': photo_url, 'caption': text[:1024]}
+            is_gif = photo_url.split('?')[0].lower().endswith('.gif')
+            
+            if is_gif:
+                url = f"https://api.telegram.org/bot{bot_token}/sendAnimation"
+                payload = {'chat_id': chat_id, 'animation': photo_url, 'caption': text[:1024] if text else ""}
+            else:
+                url = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
+                payload = {'chat_id': chat_id, 'photo': photo_url, 'caption': text[:1024] if text else ""}
         else:
             url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
             payload = {'chat_id': chat_id, 'text': text}
@@ -28,6 +34,8 @@ def send_to_telegram(text, photo_url=None):
         
         if result.get('ok'):
             return result['result'].get('message_id')
+        else:
+            print(f"Ошибка API TG: {result}")
     except Exception as e:
         print(f"Ошибка отправки в TG: {e}")
     

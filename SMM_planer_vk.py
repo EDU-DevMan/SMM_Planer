@@ -9,28 +9,24 @@ VK_GROUP_ID = os.environ.get('VK_GROUP_ID')
 VK_API_VERSION = '5.131'
 
 
-def upload_photo_to_vk(image_url):
-    """Загружает фото на сервера VK и возвращает attachment ID"""
-    if not image_url or not image_url.startswith('http'):
+def upload_photo_to_vk(img_data):
+    """Загружает статичное фото на сервера VK и возвращает attachment ID"""
+    if not img_data:
         return None
 
     try:
-        # 1. Получаем адрес сервера для загрузки
         method_url = "https://api.vk.com/method/photos.getWallUploadServer"
         params = {
-            "group_id": VK_GROUP_ID.replace('-', ''), # ID группы без минуса
+            "group_id": VK_GROUP_ID.replace('-', ''),
             "access_token": VK_USER_TOKEN,
             "v": VK_API_VERSION
         }
         res = requests.get(method_url, params=params).json()
         upload_url = res['response']['upload_url']
 
-        # 2. Загружаем файл на сервер
-        img_data = requests.get(image_url).content
         files = {'photo': ('image.jpg', img_data)}
         upload_res = requests.post(upload_url, files=files).json()
 
-        # 3. Сохраняем фото в альбом группы
         method_url = "https://api.vk.com/method/photos.saveWallPhoto"
         params = {
             "group_id": VK_GROUP_ID.replace('-', ''),
@@ -49,18 +45,64 @@ def upload_photo_to_vk(image_url):
         return None
 
 
-def publish_to_vk(text, photo_url=None):
-    """Публикует пост (текст + фото) на стену группы"""
+def upload_gif_to_vk(gif_data):
+    """Загружает GIF как документ на сервера VK и возвращает attachment ID"""
+    if not gif_data:
+        return None
+
+    try:
+        method_url = "https://api.vk.com/method/docs.getWallUploadServer"
+        params = {
+            "group_id": VK_GROUP_ID.replace('-', ''),
+            "access_token": VK_USER_TOKEN,
+            "v": VK_API_VERSION
+        }
+        res = requests.get(method_url, params=params).json()
+        upload_url = res['response']['upload_url']
+
+        files = {'file': ('animation.gif', gif_data)}
+        upload_res = requests.post(upload_url, files=files).json()
+
+        method_url = "https://api.vk.com/method/docs.save"
+        params = {
+            "file": upload_res['file'],
+            "access_token": VK_USER_TOKEN,
+            "v": VK_API_VERSION
+        }
+        save_res = requests.get(method_url, params=params).json()
+        
+        doc_data = save_res['response']['doc']
+        return f"doc{doc_data['owner_id']}_{doc_data['id']}"
+    except Exception as e:
+        print(f"Ошибка загрузки GIF в VK: {e}")
+        return None
+
+
+def publish_to_vk(text, media_url=None):
+    """Публикует пост (текст + фото/GIF) на стену группы"""
     attachments = []
     
-    if photo_url:
-        photo_id = upload_photo_to_vk(photo_url)
-        if photo_id:
-            attachments.append(photo_id)
+    if media_url and media_url.strip().startswith('http'):
+        try:
+            response = requests.get(media_url.strip())
+            file_content = response.content
+            
+            content_type = response.headers.get('Content-Type', '').lower()
+            is_gif = 'gif' in content_type or file_content.startswith(b'GIF8')
+            
+            if is_gif:
+                media_id = upload_gif_to_vk(file_content)
+            else:
+                media_id = upload_photo_to_vk(file_content)
+                
+            if media_id:
+                attachments.append(media_id)
+        except Exception as e:
+            print(f"Ошибка при скачивании/загрузке медиа для VK: {e}")
 
     method_url = "https://api.vk.com/method/wall.post"
     params = {
-        "owner_id": f"-{VK_GROUP_ID.replace('-', '')}", # ID группы должен быть с минусом
+        "owner_id": f"-{VK_GROUP_ID.replace('-', '')}",
         "from_group": 1,
         "message": text,
         "attachments": ",".join(attachments) if attachments else "",
